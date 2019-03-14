@@ -1,0 +1,28 @@
+#
+KVERS="3.10.0-693.zl7.x86_64 3.10.0-693.el7.x86_64 3.10.0-862.el7.x86_64"
+RELVER=$(< version)
+PKGNAME=kmod-nvme-tcp-${RELVER}
+PKGDIR=$HOME/rpmbuild
+RPMDIR=$HOME/rpmbuild
+RPM_BUILD_ROOT=${PKGNAME}
+RPM_OPT_DIR=${RPM_BUILD_ROOT}/opt/zettalane
+
+mkdir -p ${RPM_OPT_DIR}/bin
+mkdir -p ${RPM_OPT_DIR}/modules
+
+for kver in $KVERS ; do
+	make -C /usr/src/kernels/$kver M=`pwd` modules
+	for mod in *.ko ; do
+		mv $mod ${RPM_OPT_DIR}/modules/${mod}.${kver}
+	done
+done
+
+cp ../../3rdparty/nvme-cli/nvme ${RPM_OPT_DIR}/bin
+
+rm -rf ${PKGDIR}/BUILD/nvme-tcp-*
+rm -rf ${PKGDIR}/SOURCES/nvme-tcp-*
+tar cvfz ${PKGDIR}/SOURCES/${PKGNAME}.tar.gz ${RPM_BUILD_ROOT}
+
+
+export RPM_DIST=rhel7 RPM_MODS="nvme-tcp.ko"
+rpmbuild -bb --target $(uname -m) nvme-tcp.spec
