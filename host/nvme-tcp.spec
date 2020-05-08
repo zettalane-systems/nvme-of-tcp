@@ -44,7 +44,7 @@ modbase=""
 # Use exact driver module or try a matching module
 get_mod_base() {
 	mod=$1
-	if [ -e ${moddir}/${mod}.${kver} ]; then
+	if [ -e ${moddir}/${mod}-${kver} ]; then
 		modbase=${kver}
 		return
 	fi
@@ -85,7 +85,7 @@ for mod in %Mods; do
 		echo "Saving distribution nvme module $mod."
 		mv -f ${kerndir}/${mod}.xz ${moddir}
 	fi
-	cp ${moddir}/${mod}.${modbase} $kerndir/$mod
+	cp ${moddir}/${mod}-${modbase} $kerndir/$mod
 done
 
 depmod -a
@@ -97,7 +97,6 @@ depmod -a
 %defattr (-, root, root)
 %dir %_mayadir
 %dir %_mayadir/bin
-%_mayadir/bin/nvme
 %dir %_mayadir/modules
 %_mayadir/modules/*
 
@@ -124,6 +123,9 @@ depmod -a
 exit 0
 
 %changelog
+* Thu May 7 2020 suprasam [1.1-1]
+-  release based on Lightbits nvme-tcp 
+
 * Tue Aug 21 2018 suprasam [1.0-1]
 - release based on 4.11 driver
 
