@@ -58,7 +58,7 @@ get_mod_base() {
 		flav=el7
 	fi
 	# No double quotes too for ls here; otherwise * is not expanded
-	mod_list=$(ls ${moddir}/${mod}.*${flav}* 2> /dev/null)
+	mod_list=$(ls ${moddir}/${mod}*${flav}* 2> /dev/null)
 	for m in ${mod_list}; do
 		pkgver=$(echo $m | sed -nr 's/[^0-9]*([0-9.-]*).*/\1/p')
 		pkgver=$(echo $pkgver | sed 's/[.-]$//') # Trailing . or -
