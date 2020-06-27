@@ -64,7 +64,7 @@ get_mod_base() {
 		pkgver=$(echo $pkgver | sed 's/[.-]$//') # Trailing . or -
 		if [[ "$kver" == ${pkgver}* ]] ; then
 			modbase=$(basename $m)
-			modbase=${modbase##$mod.}
+			modbase=${modbase##$mod[.-]}
 			return
 		fi
 	done
