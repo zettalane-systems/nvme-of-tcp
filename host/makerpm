@@ -1,5 +1,5 @@
 #
-KVERS="3.10.0-1062.el7.x86_64  3.10.0-1127.el7.x86_64"
+KVERS="3.10.0-1062.el7.x86_64  3.10.0-1127.el7.x86_64 3.10.0-1160.el7.x86_64"
 RELVER=$(< version)
 PKGNAME=kmod-nvme-tcp-${RELVER}
 PKGDIR=$HOME/rpmbuild

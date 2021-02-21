@@ -4,7 +4,7 @@
 Summary: NVMEoF TCP Host Drivers
 Name: kmod-nvme-tcp
 Version: 1.0
-Release: 1
+Release: 2
 Group: System Environment/Kernel
 License: GPL
 Vendor: ZettaLane
@@ -123,6 +123,9 @@ depmod -a
 exit 0
 
 %changelog
+* Sun Feb 7 2021 suprasam [1.1-2]
+-  include rhel 7.9 kernel
+
 * Thu May 7 2020 suprasam [1.1-1]
 -  release based on Lightbits nvme-tcp 
 
