@@ -81,10 +81,8 @@ fi
 
 [ ! -d "$kerndir" ] && mkdir -p $kerndir
 for mod in %Mods; do
-	if [ "$mod" = "nvme-fabrics.ko" ] ; then
-		echo "Saving distribution nvme module $mod."
-		mv -f ${kerndir}/${mod}.xz ${moddir}
-	fi
+	echo "Saving distribution nvme module $mod."
+	mv -f ${kerndir}/${mod}.xz ${moddir}
 	cp ${moddir}/${mod}-${modbase} $kerndir/$mod
 done
 
@@ -114,10 +112,8 @@ kver=$(uname -r)
 kerndir=${kroot}/${kver}/kernel/drivers/nvme/host
 
 for mod in %Mods; do
-	if [ "$mod" = "nvme-fabrics.ko" ] ; then
-		mv ${moddir}/nvme-fabrics.ko.xz ${kroot}/${kver}/kernel/drivers/nvme/host
-	fi
 	rm -f $kerndir/$mod
+	mv ${moddir}/${mod}.xz ${kroot}/${kver}/kernel/drivers/nvme/host
 done
 depmod -a
 exit 0

@@ -24,6 +24,11 @@
 #endif
 #include "nvme-tcp.h"
 
+static inline bool sendpage_ok(struct page *page)
+{
+	return !PageSlab(page) && !PageCompound(page) && page_count(page) >= 1;
+}
+
 #if RHEL_RELEASE_CODE > RHEL_RELEASE_VERSION(7,7)
 #define	_CTRL_FABRICS_Q	1
 #endif
@@ -1011,7 +1016,14 @@ static int nvme_tcp_try_send_data(struct nvme_tcp_request *req)
 		else
 			flags |= MSG_MORE;
 
-		ret = kernel_sendpage(queue->sock, page, offset, len, flags);
+		/* can't zcopy slab pages */
+		if (sendpage_ok(page)) {
+			ret = kernel_sendpage(queue->sock, page, offset, len,
+					flags);
+		} else {
+			ret = sock_no_sendpage(queue->sock, page, offset, len,
+					flags);
+		}
 		if (ret <= 0)
 			return ret;
 
@@ -2007,8 +2019,17 @@ static void nvme_tcp_error_recovery_work(struct work_struct *work)
 	nvme_tcp_reconnect_or_remove(ctrl);
 }
 
+static void nvme_tcp_stop_ctrl(struct nvme_ctrl *ctrl)
+{
+	cancel_work_sync(&to_tcp_ctrl(ctrl)->err_work);
+	cancel_delayed_work_sync(&to_tcp_ctrl(ctrl)->connect_work);
+}
+
 static void nvme_tcp_teardown_ctrl(struct nvme_ctrl *ctrl, bool shutdown)
 {
+#if RHEL_RELEASE_CODE > RHEL_RELEASE_VERSION(7,7)
+	nvme_tcp_stop_ctrl(ctrl);
+#endif
 	nvme_tcp_teardown_io_queues(ctrl, shutdown);
 	if (shutdown)
 		nvme_shutdown_ctrl(ctrl);
@@ -2022,21 +2043,12 @@ static void nvme_tcp_delete_ctrl(struct nvme_ctrl *ctrl)
 	nvme_tcp_teardown_ctrl(ctrl, true);
 }
 
-static void nvme_tcp_stop_ctrl(struct nvme_ctrl *ctrl)
-{
-	cancel_work_sync(&to_tcp_ctrl(ctrl)->err_work);
-	cancel_delayed_work_sync(&to_tcp_ctrl(ctrl)->connect_work);
-}
-
 static void nvme_reset_ctrl_work(struct work_struct *work)
 {
 	struct nvme_ctrl *ctrl =
 		container_of(work, struct nvme_ctrl, reset_work);
 
 	nvme_stop_ctrl(ctrl);
-#if RHEL_RELEASE_CODE > RHEL_RELEASE_VERSION(7,7)
-	nvme_tcp_stop_ctrl(ctrl);
-#endif
 	nvme_tcp_teardown_ctrl(ctrl, false);
 
 	if (!nvme_change_ctrl_state(ctrl, NVME_CTRL_CONNECTING)) {
